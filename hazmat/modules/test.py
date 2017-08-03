@@ -1,10 +1,10 @@
 from ..models import Solution, Validator
 from ..utils import normalize_dir, subtree_dirs, get_parrarel_tests
-from ..models.enums import ExitCode
+from ..models.enums import RunStatus
 from ..models.counter import ResultCounter
-from ..output import *
 from .. import tmp_utils
 from ..progressbar import tqdm
+from ..output import *
 
 
 def createSubParser(subParser):
@@ -14,22 +14,23 @@ def createSubParser(subParser):
 
 def createParser(testParser):
     solutionGroup = testParser.add_argument_group("Solution options")
-    solutionGroup.add_argument(dest = "solution", help = "Solution to generate output")
-    solutionGroup.add_argument("--timeout", metavar = "sec", type = int, help = "Maximum execusion time of solution")
+    solutionGroup.add_argument(dest = "solution", help = "Solution of task")
+    solutionGroup.add_argument("--timeout", metavar = "sec", type = float, help = "Maximum runtime of solution")
 
-    testParser.add_argument("--in-directory", "-in", help="Path to input", default= "Tests/", dest = "inTestDir")
-    testParser.add_argument("--out-directory", "-out", help="Path to outs", default="", dest = "outTestDir")
+    testParser.add_argument("--in-directory", "-in", help = "Directory of tests' inputs", default= "Tests/", dest = "inTestDir")
+    testParser.add_argument("--out-directory", "-out", help="Directory of tests' outputs", default="", dest = "outTestDir")
 
-    validatorGroup = testParser.add_argument_group("Validator options")
-    validatorGroup.add_argument("--validator", help = "Path to executiv that validats")
+    validatorGroup = testParser.add_argument_group("Validation options")
+    validatorGroup.add_argument("--validator", help = "Validation executive")
     validatorGroup.add_argument("--validator-need-input", dest = "inputneed", action = "store_true", help= "Validator requires input file")
 
     printGroup = testParser.add_argument_group("Printing options")
     printGroup.add_argument("--progressbar", help = "Show progressbar", action = "store_true")
     printGroup.add_argument("--summary", help="Show summary", default = 0, type = int)
     printGroup.add_argument("--print-level", dest= "print", type = int, default = 3)
+
     testParser.add_argument("--walk", action = "store_true", help = "Walk symetric reqursive through directory")
-    testParser.add_argument("--break", action = "store_true", help = "Break on first error ")
+    testParser.add_argument("--break", action = "store_true", help = "Break on first error")
     testParser.set_defaults(func = testHandler)
 
 
@@ -46,20 +47,21 @@ def runTests(solution, validator, listTests, counter, breakOnError = False, prog
     for inFile, outFile in gen:
         if progressbar:
             gen.set_description(inFile)
-        exitCode, duration = solution.run(inFile, tmp)
-        if exitCode == ExitCode.OK:
+        status, duration = solution.run(inFile, tmp)
+        if status == RunStatus.OK:
             res = validator.validate(inFile, outFile, tmp)
+            counter.addResult(inFile, duration, res)
             if res and printLevel > 2:
-                print_func(counter.addResult(inFile, duration, res))
+                print_func(strAC(inFile, duration))
             elif not res and printLevel > 1:
-                print_func(counter.addResult(inFile, duration, res))
-            else:
-                counter.addResult(inFile, duration, res)
+                print_func(strWA(inFile, duration))
+
             if breakOnError:
                 return False
         else:
+            counter.addError(inFile, duration, status)
             if printLevel > 0:
-                print_func(counter.addError(inFile, duration, exitCode))
+                print_func(strTLE(inFile) if status == RunStatus.TLE else strExc(status, inFile))
             if breakOnError:
                 return False
     return True
@@ -78,7 +80,7 @@ def testHandler(args):
 
     if not solution.compile():
         printError("Could not compile solution")
-        exit(103)
+        exit(121)
 
     listDir = subtree_dirs(inTestDir) if args['walk'] else [inTestDir]
 

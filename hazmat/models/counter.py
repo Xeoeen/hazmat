@@ -1,12 +1,11 @@
-
-from .enums import ExitCode
+from .enums import RunStatus
 from ..output import *
 
 
 class ResultCounter(object):
     class Event(object):
-        def __init__(self, exitCode, testName, duration, success):
-            self.exitCode = exitCode
+        def __init__(self, status, testName, duration, success):
+            self.status = status
             self.testName = testName
             self.duration = duration
             self.success = success
@@ -20,19 +19,14 @@ class ResultCounter(object):
         self.acCount = 0
         self.waCount = 0
 
-    def addError(self, testName, duration, exitCode):
-        if exitCode in self.errorCounter:
-            self.errorCounter[exitCode] += 1
+    def addError(self, testName, duration, status):
+        if status in self.errorCounter:
+            self.errorCounter[status] += 1
         else:
-            self.errorCounter[exitCode] = 1
+            self.errorCounter[status] = 1
 
         if self.store:
-            self.events.append(ResultCounter.Event(exitCode, testName, duration, False))
-
-        if exitCode == ExitCode.TLE:
-            return strTLE(testName)
-        else:
-            return strExc(exitCode, testName)
+            self.events.append(ResultCounter.Event(status, testName, duration, False))
 
     def addResult(self, testName, duration, result):
         if result:
@@ -40,12 +34,7 @@ class ResultCounter(object):
         else:
             self.waCount += 1
         if self.store:
-            self.events.append(ResultCounter.Event(ExitCode.OK, testName, duration, result))
-
-        if result:
-            return strAC(testName, duration)
-        else:
-            return strWA(testName, duration)
+            self.events.append(ResultCounter.Event(RunStatus.OK, testName, duration, result))
 
     def __iadd__(self, other):
         if not isinstance(other, ResultCounter):
@@ -69,30 +58,29 @@ class ResultCounter(object):
         printArrow("")
 
         for key, value in self.errorCounter.items():
-            printError(key.name, end = "")
-            printArrow(value)
+            printExc(key, value)
 
     def summary(self, level = 3):
         printInfo("Summary of run")
         if self.acCount > 0 and level > 2:
             printInfo("AC")
             for event in self.events:
-                if event.exitCode == ExitCode.OK and event.success:
+                if event.status == RunStatus.OK and event.success:
                     printAC(event.testName, event.duration)
         if self.waCount > 0 and level > 1:
             printInfo("WA")
             for event in self.events:
-                if event.exitCode == ExitCode.OK and not event.success:
+                if event.status == RunStatus.OK and not event.success:
                     printWA(event.testName, event.duration)
         if level > 0:
-            if ExitCode.TLE in self.errorCounter:
+            if RunStatus.TLE in self.errorCounter:
                 printInfo("TLE")
                 for event in self.events:
-                    if event.exitCode == ExitCode.TLE:
+                    if event.status == RunStatus.TLE:
                         printTLE(event.testName)
-            if len(self.errorCounter) - int(ExitCode.TLE in self.errorCounter) > 0:
+            if len(self.errorCounter) - int(RunStatus.TLE in self.errorCounter) > 0:
                 printInfo("Fuckups")
                 for event in self.events:
-                    if event.exitCode != ExitCode.OK and event.exitCode != ExitCode.TLE:
-                        printError(event.exitCode.name, end = "")
+                    if event.status != RunStatus.OK and event.status != RunStatus.TLE:
+                        printError(event.status.name, end = "")
                         printArrow(event.testName)

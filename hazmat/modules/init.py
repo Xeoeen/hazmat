@@ -12,7 +12,7 @@ def createSubParser(subParser):
 
 def createParser(initParser):
     initParser.add_argument("--path", help = "Path to initialization", default = "./")
-    initParser.add_argument("name", help = "Name of first file")
+    initParser.add_argument("name", help = "Name of solution")
     initParser.add_argument("--type", help = "type of template used to init", default = "default")
     initParser.set_defaults(func=initHandler)
 
@@ -24,22 +24,23 @@ def initHandler(args):
     if extension not in config.providers:
         printError("Unsupported language {}".format(extension))
         print("\tMake sure you put it in config")
-        exit(104)
+        exit(110)
 
     provider = config.providers[extension]
 
     if not provider.has_init:
         printError("No initialization data in config")
         print("\tMake sure you put it in config")
-        exit(104)
+        exit(111)
     initData = provider.init_data
 
     if init_type not in initData:
         printError("No initialization of this type in config")
         print("\tMake sure you put it in config")
-        exit(104)
+        exit(111)
     initData = initData[init_type]
 
+    printed_something = False
     for folder_template in initData["dirs"]:
         folder = directory + folder_template.replace("{}", name)
         if not os.path.isdir(folder):
@@ -50,7 +51,9 @@ def initHandler(args):
         dest = directory + file_move["dest"].replace("{}", name)
         if os.path.isfile(dest):
             printWarning("File {} already exists SKIPPING".format(dest))
+            printed_something = True
         else:
             copy(src, dest)
-    print()
+    if printed_something:
+        print()
     printInfo("Initailized")

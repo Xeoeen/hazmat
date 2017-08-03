@@ -1,7 +1,7 @@
-from ..utils import normalize_dir
-from .. output import *
-from ..models import Generator, Solution
 import os
+from ..models import Generator, Solution
+from ..utils import normalize_dir
+from ..output import *
 
 
 def createSubParser(subParser):
@@ -11,11 +11,11 @@ def createSubParser(subParser):
 
 def createParser(generateParser):
     solutionGroup = generateParser.add_argument_group("Solution options")
-    solutionGroup.add_argument(dest = "solution", help = "Solution to generate output")
-    solutionGroup.add_argument("--timeout", metavar = "sec", type = int, default = 5, help = "Maximum execusion time of solution")
+    solutionGroup.add_argument(dest = "solution", help = "Solution of task")
+    solutionGroup.add_argument("--timeout", metavar = "sec", type = float, default = 5, help = "Maximum runtime of solution")
 
     generatorGroup = generateParser.add_argument_group("Generator options")
-    generatorGroup.add_argument("--generator", help = "Path to executive file thath generates tests", required = True)
+    generatorGroup.add_argument("--generator", help = "Generator executive", required = True)
     generatorGroup.add_argument("--message", "-m", dest = "generator_message", default = "", help = "This one goes to generator as stdin",)
 
     testsGroup = generateParser.add_argument_group("Tests options")
@@ -43,7 +43,7 @@ def generateHandler(args):
     startPoint, endPoint = args["range"]
     if not startPoint < endPoint:
         printError("Given range is not valid")
-        exit(1)
+        exit(131)
 
     if args["zero_fill"] is None:
         zero_fill = len(str(endPoint))

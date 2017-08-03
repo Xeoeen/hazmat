@@ -31,12 +31,8 @@ class Validator:
         try:
             exitCode = call(callList, timeout = Validator.timeOut, stdout = DEVNULL, stderr = DEVNULL)
         except TimeoutExpired:
-            print("Checker {} got timeout on tetst {}!".format(self.checker, inFile))
+            print("Validator {} got timeout on test {}!".format(self.checker, inFile))
             return False
-        except KeyboardInterrupt:
-            exit(1)
-        except:
-            exit(1)
 
         if exitCode == 0:
             return True

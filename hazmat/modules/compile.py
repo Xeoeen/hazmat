@@ -10,10 +10,10 @@ def createSubParser(subParser):
 
 def createParser(compileParser):
     compileParser.set_defaults(func = compileHandler)
-    compileParser.add_argument(dest = "solution", help = "Path to solution")
+    compileParser.add_argument(dest = "solution", help = "Solution of task")
     compileParser.add_argument('--force', '-f', action='store_true')
-    compileParser.add_argument('--output', help = "Path of output file", default = "")
-    compileParser.add_argument('--flags', dest = "flags", nargs = REMAINDER, default =[])
+    compileParser.add_argument('--output', help = "Compiled version path", default = "")
+    compileParser.add_argument('--flags', dest = "flags", nargs = REMAINDER, default =[], help = "Optional flags to compiler")
 
 
 def compileHandler(args):

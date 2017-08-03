@@ -3,7 +3,7 @@ from shutil import copyfile
 from ..utils import normalize_dir
 from ..output import *
 from ..models import Solution, Generator, Validator, ResultCounter
-from ..models.enums import ExitCode
+from ..models.enums import RunStatus
 from ..progressbar import tqdm
 from .. import tmp_utils
 
@@ -15,28 +15,28 @@ def createSubParser(subParser):
 
 def createParser(liveParser):
     solutionGroup = liveParser.add_argument_group("Solution options")
-    solutionGroup.add_argument(dest = "solution", help = "Solution to check")
-    solutionGroup.add_argument("--timeout", "-t", metavar = "sec", help = "Maximal runtime of program", default = 5, type = int, dest="timeout")
+    solutionGroup.add_argument(dest = "solution", help = "Solution of task")
+    solutionGroup.add_argument("--timeout", "-t", metavar = "sec", help = "Maximal runtime of program", default = 5, type = float, dest="timeout")
 
     outputGroup = liveParser.add_argument_group("Output generator options")
     outputGroup.add_argument(dest = "used", help = "Solution to generate right outputs")
     outputGroup.add_argument("--timeout-checker", "-tc", metavar = "sec", help = "Maximal runtime of checker", default = 10, type = int, dest ="timeoutchecker")
 
-    validatorGroup = liveParser.add_argument_group("Validator options")
-    validatorGroup.add_argument("--validator", help = "Path to executiv that validats")
-    validatorGroup.add_argument("--validator-need-input", dest = "inputneed", action = "store_true", help= "Validator requires input file")
+    validatorGroup = liveParser.add_argument_group("Validation options")
+    validatorGroup.add_argument("--validator", help = "Validation executive")
+    validatorGroup.add_argument("--validator-need-input", dest = "inputneed", action = "store_true", help = "Validator requires input file")
 
     liveParser.add_argument("--break", help="Break on first non-AC", action = "store_true")
     liveParser.add_argument("--number-of-runs", "-n", dest = "num", help = "Numbers of tests to run", default = 10, type = int)
 
     generatorGroup = liveParser.add_argument_group("Generator options")
-    generatorGroup.add_argument("--generator", "-gen", metavar = "GEN", help = "Path to executive that generates tests", required = True)
-    generatorGroup.add_argument("--message", "-m", help="This one goes to generator as stdin", default = "")
+    generatorGroup.add_argument("--generator", "-gen", metavar = "GEN", help = "Generator executive", required = True)
+    generatorGroup.add_argument("--message", "-m", help = "This one goes to generator as stdin", default = "")
 
     printGroup = liveParser.add_argument_group("Printing options")
     printGroup.add_argument("--progressbar", help = "Show progressbar", action = "store_true")
-    printGroup.add_argument("--summary", help="Show summary", default = 0, type = int)
-    printGroup.add_argument("--print-level", dest= "print", type = int, default = 3)
+    printGroup.add_argument("--summary", help = "Show summary", default = 0, type = int)
+    printGroup.add_argument("--print-level", dest = "print", type = int, default = 3)
 
     liveParser.add_argument('--save', help="Saves non-AC tests in given dir", default = "")
 
@@ -86,23 +86,27 @@ def liveHandler(args):
                 testYield.set_description("Number {}".format(_i))
             s1, d1 = solution.run(test, unknow)
             s2, d2 = outputGenerator.run(test, wzo)
-            if s2 != ExitCode.OK:
+            testName = str(_i) + ".in"
+
+            if s2 != RunStatus.OK:
                 printError("Checker fucked up with {} on {}".format(s2, _i))
                 continue
-            if s1 != ExitCode.OK:
+            if s1 != RunStatus.OK:
                 if saveNonAC:
-                    copyfile(test, saveDest + str(_i) + ".in")
+                    copyfile(test, saveDest, testName)
                 if printLevel > 0:
-                    print_func(ounter.addError(str(_i) + ".in", d1, s1))
+                    counter.addError(testName, d1, s1)
+                    print_func(strTLE(testName) if s1 == RunStatus.TLE else strExc(s1, testName))
                 continue
 
             result = validator.validate(test, wzo, unknow)
+            counter.addResult(testName, d1, result)
+
             if result and printLevel > 2:
-                print_func(counter.addResult(str(_i) + ".in", d1, result))
+                print_func(strAC(testName, d1))
             elif not result and printLevel > 1:
-                print_func(counter.addResult(str(_i) + ".in", d1, result))
-            else:
-                counter.addResult(str(_i) + ".in", d1, result)
+                print_func(strWA(testName, d1))
+
             if not result:
                 if saveNonAC:
                     copyfile(test, saveDest + str(_i) + ".in")

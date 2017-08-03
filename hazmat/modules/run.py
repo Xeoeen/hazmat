@@ -1,9 +1,9 @@
 import os
 from ..models import Solution, Validator
-from ..models.enums import ExitCode
+from ..models.enums import RunStatus
 from ..utils import printFile
-from ..output import *
 from .. import tmp_utils
+from ..output import *
 
 
 def createSubParser(subParser):
@@ -13,16 +13,16 @@ def createSubParser(subParser):
 
 def createParser(runParser):
     solutionGroup = runParser.add_argument_group("Solution options")
-    solutionGroup.add_argument(dest = "solution", help = "Solution to check")
-    solutionGroup.add_argument("--timeout", "-t", metavar = "sec", help = "Maximal runtime of program", default = 5, type = int, dest="timeout")
+    solutionGroup.add_argument(dest = "solution", help = "Solution of task")
+    solutionGroup.add_argument("--timeout", "-t", metavar = "sec", help = "Maximal runtime of program", default = 5, type = float, dest="timeout")
 
-    runParser.add_argument(dest = "inFile", help = "Path to test")
-    runParser.add_argument("--out", dest = "outFile", default = "", help = "Test output file")
+    runParser.add_argument(dest = "inFile", help = "Input file")
+    runParser.add_argument("--out", dest = "outFile", default = "", help = "Output file")
     runParser.add_argument("--show-input", "-is", dest = "showinput", action="store_true", help="Print input file")
     runParser.add_argument("--show-output", "-os", dest = "showoutput", action="store_true", help="Print outputs")
 
-    validatorGroup = runParser.add_argument_group("Validator options")
-    validatorGroup.add_argument("--validator", help = "Path to executiv that validats")
+    validatorGroup = runParser.add_argument_group("Validation options")
+    validatorGroup.add_argument("--validator", help = "Validation executive")
     validatorGroup.add_argument("--validator-need-input", dest = "inputneed", action = "store_true", help= "Validator requires input file")
 
     runParser.set_defaults(func = runHandler)
@@ -34,7 +34,7 @@ def runHandler(args):
     solution = Solution(name = args["solution"], timeout = args["timeout"])
     if not solution.compile() and not solution.hasExec:
         printError("Cannot create binary and no binary avaible")
-        exit(103)
+        exit(121)
 
     inFile = args["inFile"]
     if args["outFile"] == "":
@@ -48,21 +48,21 @@ def runHandler(args):
 
     if not os.path.isfile(inFile):
         printError("This test doesn't exist ({})".format(inFile))
-        exit(102)
+        exit(141)
 
     try:
-        exitCode, duration = solution.run(inFile, tmp)
+        status, duration = solution.run(inFile, tmp)
     except KeyboardInterrupt:
         printInfo("Running test canceled due to KeyboardInterrupt")
         exit(105)
 
-    if exitCode != ExitCode.OK:
-        printError(exitCode.name, end = "")
+    if status != RunStatus.OK:
+        printError(status.name, end = "")
         printTime(duration)
         if show_input:
             printInfo("Input")
             printFile(inFile)
-        exit(1)
+        exit(0)
 
     if os.path.isfile(outFile):
 

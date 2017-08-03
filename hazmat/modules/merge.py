@@ -23,9 +23,9 @@ def createSubParser(subParser):
 
 def createParser(mergeParser):
     mergeParser.set_defaults(func = mergeHandler)
-    mergeParser.add_argument(dest = "solution", help = "Path to solutin")
-    mergeParser.add_argument(dest = "output", help = "Path to output file")
-    mergeParser.add_argument("--force", "-f", action="store_true")
+    mergeParser.add_argument(dest = "solution", help = "Solution of task")
+    mergeParser.add_argument(dest = "output", help = "Output file")
+    mergeParser.add_argument("--force", "-f", action="store_true", help = "Don't mind overwritting")
 
 
 def mergeHandler(args):
@@ -34,15 +34,15 @@ def mergeHandler(args):
     out_file = args["output"]
     if not solution.info.has_merge:
         printError("Unnable to detect merge command in config")
-        exit(104)
+        exit(111)
 
     if not solution.hasSource:
         printError("No valid sorce code given!")
-        exit(102)
+        exit(141)
 
     if os.path.isfile(out_file) and not args["force"]:
         printError("File exist already.\n\t Add --force / -f to overwrite!")
-        exit(106)
+        exit(142)
 
     try:
         merge(solution.sourceFile, out_file, solution.info.merge_command)

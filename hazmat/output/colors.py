@@ -79,12 +79,12 @@ def printTLE(testName):
 
 
 def strTLE(testName):
-    return strWarning("TLE {}".format(testName))
+    return strWarning("TLE  ") + strArrow(testName)
 
 
-def printExc(exitCode, testName):
-    print(strExc(exitCode, testName))
+def printExc(status, testName):
+    print(strExc(status, testName))
 
 
-def strExc(exitCode, testName):
-    return strError(exitCode.name) + strArrow(testName)
+def strExc(status, testName):
+    return strError(status.name) + strArrow(testName)

@@ -1,7 +1,7 @@
 import time
 import os
 from subprocess import DEVNULL, TimeoutExpired, call
-from .enums import ExitCode
+from .enums import RunStatus
 from .. import config
 from ..output import *
 
@@ -14,7 +14,7 @@ class Solution(object):
         baseName, extension = os.path.splitext(name)
         if extension not in config.providers:
             printError("Non valid provider in config")
-            exit(1)
+            exit(110)
 
         self.sourceFile = name
         self.info = config.providers[extension]
@@ -31,7 +31,7 @@ class Solution(object):
 
         if not self.hasSource and not self.hasExec:
             print("non valid solution no execFile and sourceFile")
-            exit(102)
+            exit(141)
 
     def internal_compile(self, flags):
         try:
@@ -78,6 +78,6 @@ class Solution(object):
             durationTime = endTime - startTime
             durationTime = round(durationTime, 2)
         except TimeoutExpired:
-            return ExitCode.TLE, 0
+            return RunStatus.TLE, 0
 
-        return ExitCode(exitCode), durationTime
+        return RunStatus(exitCode), durationTime
