@@ -35,6 +35,21 @@
                 "compiler": "clang++-4.0",
                 "default-flags": ["-O2", "-std=c++11"],
                 "format": "{} {} {} -o {}"
+            },
+            "merge": "mergeCompile {} {}",
+            "init":{
+                "default": {
+                    "dirs": [ "Tests" ],
+                    "files": [
+                        { "src": "/home/user/template.cpp", "dest": "{}.cpp"}
+                    ]
+                },
+                "testing" :{
+                    "dirs": [ "Gen", "Valid", "Math"],
+                    "files": [
+                        { "src": "/home/user/math.cpp", "dest": "Math/{}-math.cpp"}
+                    ]
+                }
             }
 
         },
@@ -55,6 +70,7 @@
 
     ]
 }
+
 ```
 ###### **This file should be json formatted.**
 
