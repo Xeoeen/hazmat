@@ -1,4 +1,3 @@
-from argparse import REMAINDER
 from ..models import Solution
 from ..output import *
 
@@ -13,7 +12,7 @@ def createParser(compileParser):
     compileParser.add_argument(dest = "solution", help = "Solution of task")
     compileParser.add_argument('--force', '-f', action='store_true')
     compileParser.add_argument('--output', help = "Compiled version path", default = "")
-    compileParser.add_argument('--flags', dest = "flags", nargs = REMAINDER, default =[], help = "Optional flags to compiler")
+    compileParser.add_argument('--flags', dest = "flags", default = None, help = "Optional flags to compiler")
 
 
 def compileHandler(args):
@@ -21,4 +20,7 @@ def compileHandler(args):
     if not solution.info.need_compile:
         printInfo("No need to compile this file!")
 
-    solution.compile(flags = args["flags"], force = args["force"], auto = False)
+    flags = args["flags"]
+    if flags is not None:
+        flags = flags.split(" ")
+    solution.compile(flags = flags, force = args["force"], auto = False)
