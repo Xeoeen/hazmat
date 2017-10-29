@@ -45,9 +45,9 @@ class Solution(object):
 
         if exitCode == 0:
             if flags is None:
-                printInfo("Compiled {} with flags".format(self.sourceFile) + " ".join(self.info.default_flags))
+                printInfo("Compiled {} with flags ".format(self.sourceFile) + " ".join(self.info.default_flags))
             else:
-                printInfo("Compiled {} with flags".format(self.sourceFile) + " ".join(flags))
+                printInfo("Compiled {} with flags ".format(self.sourceFile) + " ".join(flags))
             return True
         else:
             printWarning("Error in compiling")

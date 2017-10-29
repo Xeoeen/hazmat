@@ -1,5 +1,6 @@
 from subprocess import Popen, PIPE, DEVNULL
 
+
 class GeneratorError(Exception):
 
     def __init__(self, message):

@@ -4,8 +4,8 @@ from ..models import Solution
 from ..output import *
 
 
-def merge(solution, output, command):
-    callList = command.format(solution, output).split()
+def merge(solution, output, command, flags):
+    callList = command.format(solution, output, flags).split()
     try:
         exit_code = subprocess.call(callList)
     except KeyboardInterrupt:
@@ -26,6 +26,7 @@ def createParser(mergeParser):
     mergeParser.add_argument(dest = "solution", help = "Solution of task")
     mergeParser.add_argument(dest = "output", help = "Output file")
     mergeParser.add_argument("--force", "-f", action="store_true", help = "Don't mind overwritting")
+    mergeParser.add_argument('--flags', dest = "flags", default = "", type=str, help = "Optional flags to compiler")
 
 
 def mergeHandler(args):
@@ -45,7 +46,7 @@ def mergeHandler(args):
         exit(142)
 
     try:
-        merge(solution.sourceFile, out_file, solution.info.merge_command)
+        merge(solution.sourceFile, out_file, solution.info.merge_command, args["flags"])
         printSuccess("Merged {} into {}".format(solution.sourceFile, out_file))
     except:
         printError("Merging failed")
