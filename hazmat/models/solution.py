@@ -19,7 +19,7 @@ class Solution(object):
         self.sourceFile = name
         self.info = config.providers[extension]
         if self.info.need_compile:
-            self.execFile = baseName + ".bin"
+            self.execFile = baseName + ".e"
         else:
             self.execFile = name
 

@@ -3,7 +3,7 @@ from ..output import *
 
 
 def createSubParser(subParser):
-    compileParser = subParser.add_parser("compile", help="Compile options")
+    compileParser = subParser.add_parser("build", help="Compile solution")
     createParser(compileParser)
 
 
